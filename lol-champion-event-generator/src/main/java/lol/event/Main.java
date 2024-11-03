@@ -1,26 +1,29 @@
 package lol.event;
 
-import lol.event.util.DataFormatUtil;
+import lol.event.util.SessionUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 @Slf4j
 public class Main {
 
+    // Final Common Code
     static final Integer PLAYER_LIMIT = 10; // league of legend 는 1 Game 당, 10명의 Player 가 참여함.
-    static final String IDENTIFICATION_DATE = DataFormatUtil.getToday(); // 오늘 날짜 yyyyMMdd 형식으로 표현
+    static final String TOPIC_NAME = "league_of_legend";
+
+    // Variable Common Code
+    static Integer USER_NUM = 0;
+    static String BOOT_SERVER = null;
 
     public static void main(String[] args) {
-        log.info("[ league of legend Game 이 실행됩니다. ]");
-        log.info("args {}", Arrays.toString(args));
+        log.info("[ league of legend 가 실행됩니다. ]");
 
         // args[0] = 플레이어 수 ( 10명 단위 )
         // args[1] = 부트스트랩 서버:포트
@@ -36,22 +39,27 @@ public class Main {
             System.exit(0);
         }
 
-        collectGameData(Integer.parseInt(args[0]), args[1]);
+        // Common Code Setting
+        USER_NUM = Integer.parseInt(args[0]);
+        BOOT_SERVER = args[1];
+
+        // Game Data Collection
+        collectGameData();
 
     }
 
-    public static void collectGameData(int userNum, String server) {
+    public static void collectGameData() {
 
-        int gameCount = userNum / PLAYER_LIMIT;
+        int gameCount = USER_NUM / PLAYER_LIMIT;
 
         CountDownLatch latch = new CountDownLatch(gameCount);
         ExecutorService executor = Executors.newFixedThreadPool(gameCount);
 
         IntStream.range(0, gameCount).forEach(j -> {
-            String sessionGameID = Game.getSessionGameID();
+            String sessionGameID = SessionUtil.getSessionGameID();
             OffsetDateTime createGameDate = OffsetDateTime.now(ZoneId.of("UTC"));
             executor.execute(() -> {
-                log.info(sessionGameID);
+                new Game(sessionGameID, createGameDate, latch).run();
             });
         });
 
@@ -59,10 +67,19 @@ public class Main {
             latch.await();
         } catch (InterruptedException e) {
             log.error("[ ERROR ] : " + e.getMessage());
+            Thread.currentThread().interrupt(); // Re-interrupt the thread
         } finally {
             executor.shutdown();
+            try {
+                if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                    log.warn("Forcing shutdown as tasks did not complete in time.");
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                log.error("[ ERROR ] during shutdown: " + e.getMessage());
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
     }
-
-
 }
