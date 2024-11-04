@@ -11,6 +11,7 @@ repositories {
 }
 
 jar {
+    finalizedBy shadowJar
     manifest {
         attributes 'Main-Class': 'lol.event.Main'
     }
