@@ -1,0 +1,6 @@
+docker network create kafka
+ - 카프카 네트워크 구축
+
+
+
+localhost:9092,localhost:9093,localhost:9094
