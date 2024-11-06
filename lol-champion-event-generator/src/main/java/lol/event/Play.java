@@ -59,10 +59,7 @@ public class Play implements Runnable {
             int itemCount = 0;
             Integer deathCount = 0;
 
-            int i = 0;
-            while (i < 10) {
-                log.info("iiiiiiiiiiiiiiiiiiiiiiiiiii :::::::::: {}", i);
-                i++;
+            while (isDuration(startTime)) {
                 long sleepTime =
                         MINIMUM_SLEEP_TIME + Double.valueOf(RandomUtil.R.nextDouble() * (MAXIMUM_SLEEP_TIME))
                                 .longValue();
@@ -170,8 +167,6 @@ public class Play implements Runnable {
      * @return 현재 시간이 설정된 기간 내에 있으면 true, 그렇지 않으면 false 를 반환합니다.
      */
     private boolean isDuration(long startTime) {
-        log.info(" While ::: System.currentTimeMillis() - startTime {}", System.currentTimeMillis() - startTime);
-        log.info(" While ::: gamePlayTime * 1000L {}", gamePlayTime * 1000L);
         return System.currentTimeMillis() - startTime < gamePlayTime * 1000L;
     }
 
