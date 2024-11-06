@@ -16,7 +16,7 @@ public class Main {
 
     // Final Common Code
     static final Integer PLAYER_LIMIT = 10; // league of legend 는 1 Game 당, 10명의 Player 가 참여함.
-    static final String TOPIC_NAME = "league_of_legend";
+    static final String TOPIC_NAME = "league-of-legend";
 
     // Variable Common Code
     static Integer USER_NUM = 0;
