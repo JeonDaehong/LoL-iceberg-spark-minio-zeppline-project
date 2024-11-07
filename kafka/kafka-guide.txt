@@ -22,3 +22,7 @@ java -jar lol-champion-event-generator-1.0-SNAPSHOT-all.jar 10 127.0.0.1:9092,12
 
 < 컨슈머 로그 확인 >
 docker exec -it kafka-worker-01 kafka-console-consumer --bootstrap-server 127.0.0.1:19092 --topic league_of_legend --from-beginning
+
+
+
+
