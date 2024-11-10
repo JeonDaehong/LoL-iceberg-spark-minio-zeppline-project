@@ -11,7 +11,7 @@ object KafkaSparkApp {
       .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
       .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
       .config("spark.sql.catalog.spark_catalog.type", "hadoop")
-      .config("spark.sql.catalog.spark_catalog.warehouse", "s3a://ice-berg/test")
+      .config("spark.sql.catalog.spark_catalog.warehouse", "s3a://ice-berg/kafka-test")
       .getOrCreate()
 
     val hadoopConf = spark.sparkContext.hadoopConfiguration
@@ -69,10 +69,10 @@ object KafkaSparkApp {
 
     val parsedMessages = messages.select(from_json(col("jsonString"), jsonSchema).as("data")).select("data.*")
 
-    spark.sql("CREATE NAMESPACE IF NOT EXISTS ice_test")
+    spark.sql("CREATE NAMESPACE IF NOT EXISTS ice_db")
 
     spark.sql("""
-      CREATE TABLE IF NOT EXISTS ice_test.my_table (
+      CREATE TABLE IF NOT EXISTS ice_db.ice_table (
         gameID STRING,
         method STRING,
         ip STRING,
@@ -88,14 +88,15 @@ object KafkaSparkApp {
         status STRING
       )
       USING iceberg
-      LOCATION 's3a://ice-berg/test/ice_test/my_table'
+      LOCATION 's3a://ice-berg/kafka-test/ice_db/ice_table'
     """)
 
     val query = parsedMessages.writeStream
       .format("iceberg")
       .outputMode("append")
       .option("checkpointLocation", "/tmp/iceberg-checkpoint")
-      .toTable("ice_test.my_table")
+      .trigger(Trigger.ProcessingTime("30 seconds")) // 아이스버그 저장 배치 간격을 30초로 설정
+      .toTable("ice_db.ice_table")
 
     query.awaitTermination()
   }
