@@ -1,6 +1,6 @@
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.streaming.Trigger
-import org.apache.spark.sql.types.{StructType, StringType, IntegerType, TimestampType}
+import org.apache.spark.sql.types.{StructType, StringType, IntegerType, TimestampType, LongType}
 import org.apache.spark.sql.functions.{from_json, col}
 
 object KafkaSparkApp {
@@ -8,6 +8,10 @@ object KafkaSparkApp {
     val spark = SparkSession.builder()
       .appName("KafkaSparkApp")
       .master("local[*]")
+      .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
+      .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
+      .config("spark.sql.catalog.spark_catalog.type", "hadoop")
+      .config("spark.sql.catalog.spark_catalog.warehouse", "s3a://ice-berg/test")
       .getOrCreate()
 
     val hadoopConf = spark.sparkContext.hadoopConfiguration
@@ -44,6 +48,7 @@ object KafkaSparkApp {
       .add("champion", StringType)
       .add("status", StringType)
 
+    /*
     val messages = df.withColumn("jsonString", col("value").cast(StringType))
     messages.printSchema()
 
@@ -58,6 +63,39 @@ object KafkaSparkApp {
       .option("maxRecordsPerFile", 10000)
       .trigger(Trigger.ProcessingTime("10 seconds"))
       .start(minioOutputPath)
+    */
+
+    val messages = df.withColumn("jsonString", col("value").cast(StringType))
+
+    val parsedMessages = messages.select(from_json(col("jsonString"), jsonSchema).as("data")).select("data.*")
+
+    spark.sql("CREATE NAMESPACE IF NOT EXISTS ice_test")
+
+    spark.sql("""
+      CREATE TABLE IF NOT EXISTS ice_test.my_table (
+        gameID STRING,
+        method STRING,
+        ip STRING,
+        input_key STRING,
+        deathCount STRING,
+        inGame_time STRING,
+        datetime STRING,
+        x STRING,
+        y STRING,
+        createGameDate STRING,
+        account STRING,
+        champion STRING,
+        status STRING
+      )
+      USING iceberg
+      LOCATION 's3a://ice-berg/test/ice_test/my_table'
+    """)
+
+    val query = parsedMessages.writeStream
+      .format("iceberg")
+      .outputMode("append")
+      .option("checkpointLocation", "/tmp/iceberg-checkpoint")
+      .toTable("ice_test.my_table")
 
     query.awaitTermination()
   }

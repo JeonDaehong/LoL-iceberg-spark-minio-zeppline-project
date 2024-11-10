@@ -9,7 +9,8 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % "3.4.1",
   "org.apache.logging.log4j" % "log4j-core" % "2.17.1",
   "org.apache.hadoop" % "hadoop-aws" % "3.3.1",
-  "com.amazonaws" % "aws-java-sdk-bundle" % "1.12.262"
+  "com.amazonaws" % "aws-java-sdk-bundle" % "1.12.262",
+  "org.apache.iceberg" %% "iceberg-spark-runtime-3.4" % "1.3.1"
 )
 
 javaOptions ++= Seq(
