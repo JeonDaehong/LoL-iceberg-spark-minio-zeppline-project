@@ -94,8 +94,10 @@ object KafkaSparkApp {
     val query = parsedMessages.writeStream
       .format("iceberg")
       .outputMode("append")
-      .option("checkpointLocation", "/tmp/iceberg-checkpoint")
-      .trigger(Trigger.ProcessingTime("30 seconds")) // 아이스버그 저장 배치 간격을 30초로 설정
+      .option("checkpointLocation", "/tmp/iceberg-checkpoint")  // 체크포인트 경로 설정
+      .option("maxRecordsPerFile", 100)  // 파일당 최대 레코드 수 제한
+      .partitionBy("createGameDate")  // createGameDate 로 파티셔닝
+      .trigger(Trigger.ProcessingTime("5 minutes"))  // 트리거 간격을 5분으로 설정
       .toTable("ice_db.ice_table")
 
     query.awaitTermination()
