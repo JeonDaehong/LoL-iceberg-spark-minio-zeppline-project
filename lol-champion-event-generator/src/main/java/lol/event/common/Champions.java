@@ -1,4 +1,4 @@
-package lol.event;
+package lol.event.common;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

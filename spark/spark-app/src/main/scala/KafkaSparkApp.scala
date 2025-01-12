@@ -11,7 +11,7 @@ object KafkaSparkApp {
       .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
       .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
       .config("spark.sql.catalog.spark_catalog.type", "hadoop")
-      .config("spark.sql.catalog.spark_catalog.warehouse", "s3a://ice-berg/kafka-test")
+      .config("spark.sql.catalog.spark_catalog.warehouse", "s3a://league-of-legend-iceberg/ice-berg")
       .getOrCreate()
 
     val hadoopConf = spark.sparkContext.hadoopConfiguration
@@ -34,19 +34,23 @@ object KafkaSparkApp {
 
     import spark.implicits._
     val jsonSchema = new StructType()
-      .add("gameID", StringType)
-      .add("method", StringType)
-      .add("ip", StringType)
-      .add("input_key", StringType)
-      .add("deathCount", StringType)
-      .add("inGame_time", StringType)
-      .add("datetime", StringType)
-      .add("x", StringType)
-      .add("y", StringType)
-      .add("createGameDate", StringType)
-      .add("account", StringType)
-      .add("champion", StringType)
-      .add("status", StringType)
+        .add("gameID", StringType)
+        .add("uniqueId", StringType)
+        .add("email", StringType)
+        .add("password", StringType)
+        .add("tier", StringType)
+        .add("sex", StringType)
+        .add("age", StringType)
+        .add("nickName", StringType)
+        .add("team", StringType)
+        .add("ip", StringType)
+        .add("champion", StringType)
+        .add("kill", StringType)
+        .add("death", StringType)
+        .add("assist", StringType)
+        .add("gamePlayTime", StringType)
+        .add("isWin", StringType)
+        .add("createGameDate", StringType)
 
     /*
     val messages = df.withColumn("jsonString", col("value").cast(StringType))
@@ -69,27 +73,35 @@ object KafkaSparkApp {
 
     val parsedMessages = messages.select(from_json(col("jsonString"), jsonSchema).as("data")).select("data.*")
 
-    spark.sql("CREATE NAMESPACE IF NOT EXISTS ice_db")
+    spark.sql("CREATE NAMESPACE IF NOT EXISTS lol_db")
 
     spark.sql("""
-      CREATE TABLE IF NOT EXISTS ice_db.ice_table (
-        gameID STRING,
-        method STRING,
-        ip STRING,
-        input_key STRING,
-        deathCount STRING,
-        inGame_time STRING,
-        datetime STRING,
-        x STRING,
-        y STRING,
-        createGameDate STRING,
-        account STRING,
-        champion STRING,
-        status STRING
-      )
-      USING iceberg
-      LOCATION 's3a://ice-berg/kafka-test/ice_db/ice_table'
-    """)
+        CREATE TABLE IF NOT EXISTS lol_db.game_table (
+          gameID STRING,
+          uniqueId STRING,
+          email STRING,
+          password STRING,
+          tier STRING,
+          sex STRING,
+          age STRING,
+          nickName STRING,
+          team STRING,
+          ip STRING,
+          champion STRING,
+          kill STRING,
+          death STRING,
+          assist STRING,
+          gamePlayTime STRING,
+          isWin STRING,
+          createGameDate STRING
+        )
+        USING iceberg
+        LOCATION 's3a://league-of-legend-iceberg/ice-berg/lol_db/game_table'
+        PARTITIONED BY (tier)
+        WITH (
+              'write.merge.mode' = 'merge-on-read'
+           )
+      """)
 
     val query = parsedMessages.writeStream
       .format("iceberg")
@@ -98,7 +110,7 @@ object KafkaSparkApp {
       .option("maxRecordsPerFile", 100)  // 파일당 최대 레코드 수 제한
       .partitionBy("createGameDate")  // createGameDate 로 파티셔닝
       .trigger(Trigger.ProcessingTime("5 minutes"))  // 트리거 간격을 5분으로 설정
-      .toTable("ice_db.ice_table")
+      .toTable("lol_db.game_table")
 
     query.awaitTermination()
   }
