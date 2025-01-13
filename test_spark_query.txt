@@ -38,9 +38,6 @@ spark.sql("SELECT count(*) FROM spark_catalog.lol_db.game_table WHERE createGame
 
 -- MOR
 
-# 기존이라면,
-
-
 # 기존 Table 에 추가
 spark.sql("ALTER TABLE spark_catalog.lol_db.game_table SET TBLPROPERTIES ( 'write.merge.mode' = 'merge-on-read' )")
 

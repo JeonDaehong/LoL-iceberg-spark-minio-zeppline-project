@@ -20,19 +20,7 @@ public class kafkaLogSendUtil {
     public static void sendLog(PlayerRecord player, CountDownLatch gameLatch) {
 
         // Properties 객체를 생성하여 Kafka Producer 설정을 저장
-        Properties props = new Properties();
-
-        // Kafka 클러스터의 부트스트랩 서버 주소 설정
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, Main.BOOT_SERVER);
-
-        // 클라이언트 식별자 설정 (Kafka 에서 이 Producer 를 구분하기 위해 사용)
-        props.put(ProducerConfig.CLIENT_ID_CONFIG, "League_Of_Legend");
-
-        // 메시지 키를 String 으로 직렬화하기 위한 설정
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-
-        // 메시지 값을 String 으로 직렬화하기 위한 설정
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        Properties props = getProperties();
 
         try (KafkaProducer<String, String> producer = new KafkaProducer<>(props)) {
 
@@ -57,7 +45,6 @@ public class kafkaLogSendUtil {
 
     };
 
-
     private static String convertPlayerRecordToJson(PlayerRecord playerRecord) {
         return "{" +
                 "\"gameID\": \"" + playerRecord.gameSessionId() + "\"," +
@@ -78,6 +65,24 @@ public class kafkaLogSendUtil {
                 "\"isWin\": \"" + playerRecord.isWin() + "\"," +
                 "\"createGameDate\": \"" + playerRecord.createGameDate() + "\"" +
                 "}";
+    }
+
+    private static Properties getProperties() {
+        Properties props = new Properties();
+
+        // Kafka 클러스터의 부트스트랩 서버 주소 설정
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, Main.BOOT_SERVER);
+
+        // 클라이언트 식별자 설정 (Kafka 에서 이 Producer 를 구분하기 위해 사용)
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, "League_Of_Legend");
+
+        // 메시지 키를 String 으로 직렬화하기 위한 설정
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        // 메시지 값을 String 으로 직렬화하기 위한 설정
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        return props;
     }
 
 }
