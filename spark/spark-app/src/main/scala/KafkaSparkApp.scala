@@ -98,7 +98,7 @@ object KafkaSparkApp {
         USING iceberg
         LOCATION 's3a://league-of-legend-iceberg/ice-berg/lol_db/game_table'
         PARTITIONED BY (tier)
-        WITH (
+        TBLPROPERTIES (
               'write.merge.mode' = 'merge-on-read'
            )
       """)
@@ -109,7 +109,7 @@ object KafkaSparkApp {
       .option("checkpointLocation", "/tmp/iceberg-checkpoint")  // 체크포인트 경로 설정
       .option("maxRecordsPerFile", 100)  // 파일당 최대 레코드 수 제한
       .partitionBy("createGameDate")  // createGameDate 로 파티셔닝
-      .trigger(Trigger.ProcessingTime("5 minutes"))  // 트리거 간격을 5분으로 설정
+      .trigger(Trigger.ProcessingTime("5 seconds"))  // 트리거 간격을 5분으로 설정
       .toTable("lol_db.game_table")
 
     query.awaitTermination()
