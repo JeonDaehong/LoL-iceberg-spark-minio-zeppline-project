@@ -13,7 +13,6 @@ val sortedDf = updatedDf.orderBy(col("createGameDate").asc, col("gameID").asc, c
 sortedDf.show(100)
 
 
-
 -- Version 과 관련된 쿼리
 
 # 스냅샷 ID 를 확인
