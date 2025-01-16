@@ -68,6 +68,8 @@ spark.sql("ALTER TABLE spark_catalog.lol_db.game_table DROP PARTITION FIELD cham
 
 
 
+
+
 -- Snapshot
 # 스냅샷 유지 정책 ( 테이블 CREATE )
 CREATE TABLE spark_catalog.lol_db.game_table (
