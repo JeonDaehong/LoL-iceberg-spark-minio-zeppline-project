@@ -1,0 +1,149 @@
+-- 일반적인 쿼리
+
+# (현재 version) 데이터 총 개수 가져오기.
+spark.sql("SELECT COUNT(*) FROM spark_catalog.lol_db.game_table").show()
+
+# (현재 version) 게임시작시간(yyyy-MM-dd hh-mm-ss으로 컨버팅) - GameID - 승리여부 - 챔피언 순으로 재정렬해서 출력
+val df = spark.sql("SELECT * FROM spark_catalog.lol_db.game_table ORDER BY champion")
+val updatedDf = df.withColumn(
+  ("createGameDate"),
+  date_format(col("createGameDate"), "yyyy-MM-dd HH:mm:ss")
+)
+val sortedDf = updatedDf.orderBy(col("createGameDate").asc, col("gameID").asc, col("isWin").desc, col("champion"))
+sortedDf.show(100)
+
+
+-- Version 과 관련된 쿼리
+
+# 스냅샷 ID 를 확인
+spark.sql("SELECT * FROM spark_catalog.lol_db.game_table.snapshots").show()
+
+# 해당 스냅샷 ID 일때의 Data Row 개수 확인
+spark.sql("SELECT count(*) FROM spark_catalog.lol_db.game_table VERSION AS OF 8409487040658868542").count()
+
+# 해당 스냅샷 ID 일때의 Data Row 50개 확인
+spark.sql("SELECT count(*) FROM spark_catalog.lol_db.game_table VERSION AS OF 8409487040658868542").show(50)
+
+# 해당 시간 기준 Data Row 50개 확인
+spark.sql("SELECT count(*) FROM spark_catalog.lol_db.game_table TIMESTAMP AS OF '2025-01-12 18:30:00'").show(50)
+
+
+-- 파티션 프루닝
+
+# 최근 1개월간의 데이터 개수
+spark.sql("SELECT count(*) FROM spark_catalog.lol_db.game_table WHERE createGameDate >= CURRENT_DATE - INTERVAL 1 MONTH").show()
+
+
+-- MOR
+
+# 기존 Table 에 추가
+spark.sql("ALTER TABLE spark_catalog.lol_db.game_table SET TBLPROPERTIES ( 'write.merge.mode' = 'merge-on-read' )")
+
+# 테이블 속성 확인
+spark.sql("SHOW TBLPROPERTIES spark_catalog.lol_db.game_table;").show()
+
+# 테이블 구조 확인
+spark.sql("DESCRIBE FORMATTED spark_catalog.lol_db.game_table").show()
+
+
+-- Verison RollBack
+
+# 해당 스냅샷 시점으로 버전 롤백 (조상)
+spark.sql("CALL spark_catalog.system.rollback_to_snapshot('lol_db.game_table', 8409487040658868542)")
+
+# 다시 자식 시점으로 롤백
+# 불가능 --> 직접 스냅샷 아이디로 하는 수 밖에 없음.
+spark.sql("SELECT count(*) FROM spark_catalog.lol_db.game_table VERSION AS OF 3631729930584235325").count()
+
+
+-- Repatition
+# 해당 테이블이 있으면 변경, 없으면 신규 테이블 생성 하여 파티션 정보등을 바꿀 수 있음. 그러나, 테이블을 새로 쓰는거임.
+spark.sql("CREATE OR REPLACE TABLE spark_catalog.lol_db.game_table ( ??? ) USING iceberg PARTITIONED BY (champion) TBLPROPERTIES ( 'write.merge.mode' = 'merge-on-read' )")
+
+# 파티션 추가
+spark.sql("ALTER TABLE spark_catalog.lol_db.game_table ADD PARTITION FIELD champion")
+
+# 파티션 삭제
+spark.sql("ALTER TABLE spark_catalog.lol_db.game_table DROP PARTITION FIELD champion")
+
+
+
+
+
+-- Snapshot
+# 스냅샷 유지 정책 ( 테이블 CREATE )
+CREATE TABLE spark_catalog.lol_db.game_table (
+    ...
+)
+USING iceberg
+TBLPROPERTIES (
+    'history.expire.min-snapshots-to-keep' = '2',		# 최소 스냅샷 유지 갯수
+    'history.expire.max-snapshot-age-ms' = '604800000',	# 스냅샷 보존 기간
+    'history.expire.max-ref-age-ms' = '604800000'	# 실제 파일 보존 기간
+);
+
+# 스냅샷 유지 정책 ( 테이블 ALTER )
+ALTER TABLE spark_catalog.lol_db.game_table
+SET TBLPROPERTIES (
+    'history.expire.min-snapshots-to-keep' = '2',
+    'history.expire.max-snapshot-age-ms' = '604800000',
+    'history.expire.max-ref-age-ms' = '604800000'
+);
+
+
+
+# 스냅샷 별로, 데이터가 쌓인걸 확인
+SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') FROM spark_catalog.lol_db.game_table.snapshots WHERE snapshot_id = 7317271329838578965) AS Time,
+       (SELECT COUNT(*) FROM spark_catalog.lol_db.game_table FOR SYSTEM_VERSION AS OF 7317271329838578965) AS record_count
+UNION ALL
+SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') FROM spark_catalog.lol_db.game_table.snapshots WHERE snapshot_id = 6980300595800022283),
+       (SELECT COUNT(*) FROM spark_catalog.lol_db.game_table FOR SYSTEM_VERSION AS OF 6980300595800022283)
+UNION ALL
+SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') FROM spark_catalog.lol_db.game_table.snapshots WHERE snapshot_id = 3149339624899376846),
+       (SELECT COUNT(*) FROM spark_catalog.lol_db.game_table FOR SYSTEM_VERSION AS OF 3149339624899376846)
+UNION ALL
+SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') FROM spark_catalog.lol_db.game_table.snapshots WHERE snapshot_id = 6949280300325809528),
+       (SELECT COUNT(*) FROM spark_catalog.lol_db.game_table FOR SYSTEM_VERSION AS OF 6949280300325809528)
+UNION ALL
+SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') FROM spark_catalog.lol_db.game_table.snapshots WHERE snapshot_id = 2779398830886778774),
+       (SELECT COUNT(*) FROM spark_catalog.lol_db.game_table FOR SYSTEM_VERSION AS OF 2779398830886778774)
+UNION ALL
+SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') FROM spark_catalog.lol_db.game_table.snapshots WHERE snapshot_id = 5333619908801872239),
+       (SELECT COUNT(*) FROM spark_catalog.lol_db.game_table FOR SYSTEM_VERSION AS OF 5333619908801872239)
+UNION ALL
+SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') FROM spark_catalog.lol_db.game_table.snapshots WHERE snapshot_id = 4786088065520100544),
+       (SELECT COUNT(*) FROM spark_catalog.lol_db.game_table FOR SYSTEM_VERSION AS OF 4786088065520100544)
+UNION ALL
+SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') FROM spark_catalog.lol_db.game_table.snapshots WHERE snapshot_id = 3530260578262733305),
+       (SELECT COUNT(*) FROM spark_catalog.lol_db.game_table FOR SYSTEM_VERSION AS OF 3530260578262733305)
+ORDER BY Time ASC;
+
+# 시간별로 데이터 수 쿼리
+%spark.sql
+
+
+SELECT DATE_FORMAT(from_utc_timestamp(current_timestamp() - INTERVAL 180 SECOND, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') AS time_interval, COUNT(*) 
+FROM spark_catalog.lol_db.game_table
+WHERE createGameDate <= (current_timestamp() - INTERVAL 180 SECOND)
+UNION ALL
+SELECT DATE_FORMAT(from_utc_timestamp(current_timestamp() - INTERVAL 125 SECOND, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') AS time_interval, COUNT(*) 
+FROM spark_catalog.lol_db.game_table
+WHERE createGameDate <= (current_timestamp() - INTERVAL 125 SECOND)
+UNION ALL
+SELECT DATE_FORMAT(from_utc_timestamp(current_timestamp() - INTERVAL 70 SECOND, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') AS time_interval, COUNT(*) 
+FROM spark_catalog.lol_db.game_table
+WHERE createGameDate <= (current_timestamp() - INTERVAL 70 SECOND)
+UNION ALL
+SELECT DATE_FORMAT(from_utc_timestamp(current_timestamp() - INTERVAL 30 SECOND, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') AS time_interval, COUNT(*) 
+FROM spark_catalog.lol_db.game_table
+WHERE createGameDate <= (current_timestamp() - INTERVAL 30 SECOND)
+UNION ALL
+SELECT DATE_FORMAT(from_utc_timestamp(current_timestamp(), 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') AS time_interval, COUNT(*) 
+FROM spark_catalog.lol_db.game_table
+WHERE createGameDate <= current_timestamp();
+
+
+-- 성능
+
+# Iceberg 테이블에서는 시간이 지나면서 데이터 파일들이 점점 더 많아질 수 있습니다. 이를 병합하거나 리라이트하여 효율적인 저장 방식으로 개선하는 작업을 합니다. 예를 들어, 작은 파일들이 여러 개 있는 경우 이를 병합하여 더 큰 파일로 만드는 작업을 수행합니다.
+spark.sql("CALL spark_catalog.system.rewrite_data_files(table => 'lol_db.game_table')")

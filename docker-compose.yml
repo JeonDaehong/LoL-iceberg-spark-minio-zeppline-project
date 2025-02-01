@@ -1,0 +1,223 @@
+version: '3.8'
+
+services:
+  zeppelin:
+    image: apache/zeppelin:0.11.2
+    container_name: zeppelin
+    user: "root"
+    ports:
+      - "8080:8080"
+    volumes:
+      - /mnt/d/docker/zeppelin_logs:/logs \
+      - /mnt/d/docker/zeppelin_notebook:/zeppelin/notebook \
+      - /mnt/d/docker/zeppelin_data:/data \
+      - ./spark/spark-3.4.4-bin-hadoop3:/opt/spark
+      - ./zeppelin-data:/zeppelin
+    environment:
+      - SPARK_HOME=/opt/spark
+      - PATH=$PATH:/opt/spark/bin
+      - ZEPPELIN_LOG_DIR=/logs
+    networks:
+      - backend
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minio-user
+      - MINIO_ROOT_PASSWORD=minio-password
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./minio-data:/data
+    networks:
+      - backend
+
+  zoo1:
+    image: confluentinc/cp-zookeeper:7.3.2
+    hostname: zoo1
+    ports:
+      - 2181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: zoo1:2888:3888;zoo2:2888:3888;zoo3:2888:3888
+    volumes:
+      - zoo1:/data
+    networks:
+      - backend
+   
+  zoo2:
+    image: confluentinc/cp-zookeeper:7.3.2
+    hostname: zoo2
+    ports:
+      - 2182:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 2
+      ZOOKEEPER_SERVERS: zoo1:2888:3888;zoo2:2888:3888;zoo3:2888:3888
+    volumes:
+      - zoo2:/data
+    networks:
+      - backend
+        
+  zoo3:
+    image: confluentinc/cp-zookeeper:7.3.2
+    hostname: zoo3
+    ports:
+      - 2183:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 3
+      ZOOKEEPER_SERVERS: zoo1:2888:3888;zoo2:2888:3888;zoo3:2888:3888
+    volumes:
+      - zoo3:/data
+    networks:
+      - backend
+
+  kafka-worker-01:
+    image: confluentinc/cp-kafka:7.3.2
+    hostname: kafka-worker-01
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+    environment:
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-worker-01:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2182,zoo3:2183"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-worker-01-log:/tmp/kafka-logs
+      - kafka-worker-01:/kafka
+    networks:
+      - backend
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+
+  kafka-worker-02:
+    image: confluentinc/cp-kafka:7.3.2
+    hostname: kafka-worker-02
+    ports:
+      - "9093:9093"
+      - "19093:19093"
+    environment:
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:19093,EXTERNAL://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-worker-02:19093,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2182,zoo3:2183"
+      KAFKA_BROKER_ID: 2
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-worker-02-log:/tmp/kafka-logs
+      - kafka-worker-02:/kafka
+    networks:
+      - backend
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+
+  kafka-worker-03:
+    image: confluentinc/cp-kafka:7.3.2
+    hostname: kafka-worker-03
+    ports:
+      - "9094:9094"
+      - "19094:19094"
+    environment:
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:19094,EXTERNAL://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-worker-03:19094,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2182,zoo3:2183"
+      KAFKA_BROKER_ID: 3
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-worker-03-log:/tmp/kafka-logs
+      - kafka-worker-03:/kafka
+    networks:
+      - backend
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+
+  kafka-manager:
+    image: sheepkiller/kafka-manager
+    hostname: kafka-manager
+    environment:
+      ZK_HOSTS: "zoo1:2181,zoo2:2182,zoo3:2183"
+      APPLICATION_SECRET: ${KAFKA_MANAGER_PASSWORD:-test}
+    ports:
+      - "9003:9000"
+    networks:
+      - backend
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter
+    hostname: kafka-exporter
+    ports:
+      - "9308:9308"
+    command: [
+      "--kafka.server=kafka-worker-01:19092",
+      "--kafka.server=kafka-worker-02:19093",
+      "--kafka.server=kafka-worker-03:19094"
+    ]
+    networks:
+      - backend
+    depends_on:
+      - kafka-worker-01
+      - kafka-worker-02
+      - kafka-worker-03
+    restart: on-failure
+    
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    hostname: kafdrop
+    ports:
+      - "9002:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka-worker-01:19092,kafka-worker-02:19093,kafka-worker-03:19094"
+    depends_on:
+      - kafka-worker-01
+      - kafka-worker-02
+      - kafka-worker-03
+    networks:
+      - backend
+
+volumes:
+  minio_data:
+  zoo1:
+  zoo2:
+  zoo3:
+  kafka-worker-01-log:
+  kafka-worker-02-log:
+  kafka-worker-03-log:
+  kafka-worker-01:
+  kafka-worker-02:
+  kafka-worker-03:
+
+networks:
+  backend:
+    external: true
+    name: ${NETWORK_BACKEND:-kafka}
