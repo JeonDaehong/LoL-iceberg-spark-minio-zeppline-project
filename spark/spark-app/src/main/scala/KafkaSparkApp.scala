@@ -99,7 +99,8 @@ object KafkaSparkApp {
         LOCATION 's3a://league-of-legend-iceberg/ice-berg/lol_db/game_table'
         PARTITIONED BY (tier)
         TBLPROPERTIES (
-              'write.merge.mode' = 'merge-on-read'
+              'write.merge.mode' = 'merge-on-read',
+              'write.target-file-size-bytes' = '134217728'  -- 128MB
            )
       """)
 
