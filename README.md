@@ -4,4 +4,4 @@
 <br><br><br>
 
 # 2. 아키텍처
-![Image](https://github.com/user-attachments/assets/ebfe5ab9-3aeb-48f5-a5c9-859f7f69d555)
+![Image](https://github.com/user-attachments/assets/2a8bbe2d-8179-4385-8d49-83e11fff2644)
