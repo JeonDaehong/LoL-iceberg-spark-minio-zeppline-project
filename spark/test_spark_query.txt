@@ -45,6 +45,10 @@ spark.sql("SHOW TBLPROPERTIES spark_catalog.lol_db.game_table;").show()
 # 테이블 구조 확인
 spark.sql("DESCRIBE FORMATTED spark_catalog.lol_db.game_table").show()
 
+# 파티션 별 데이터 확인
+spark.sql("SELECT * FROM spark_catalog.lol_db.game_table.partitions").show()
+
+
 
 -- Verison RollBack
 
@@ -119,8 +123,6 @@ SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy
 ORDER BY Time ASC;
 
 # 시간별로 데이터 수 쿼리
-%spark.sql
-
 
 SELECT DATE_FORMAT(from_utc_timestamp(current_timestamp() - INTERVAL 180 SECOND, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') AS time_interval, COUNT(*) 
 FROM spark_catalog.lol_db.game_table
