@@ -100,6 +100,11 @@ object KafkaSparkApp {
         PARTITIONED BY (tier)
         TBLPROPERTIES (
               'write.merge.mode' = 'merge-on-read',
+              'write.update.mode' = 'merge-on-read',
+              'write.delete.mode' = 'merge-on-read',
+			  -- 'write.merge.mode' = 'copy-on-write',
+              -- 'write.update.mode' = 'copy-on-write',
+              -- 'write.delete.mode' = 'copy-on-write',
               'write.target-file-size-bytes' = '134217728'  -- 128MB
            )
       """)
