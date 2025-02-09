@@ -102,11 +102,11 @@ object KafkaSparkApp {
               'write.merge.mode' = 'merge-on-read',
               'write.update.mode' = 'merge-on-read',
               'write.delete.mode' = 'merge-on-read',
-			  -- 'write.merge.mode' = 'copy-on-write',
+			        -- 'write.merge.mode' = 'copy-on-write',
               -- 'write.update.mode' = 'copy-on-write',
               -- 'write.delete.mode' = 'copy-on-write',
-              'write.metadata.puffin.enabled' = 'true',     -- Puffin 파일 활성화
-              'write.target-file-size-bytes' = '134217728'  -- 128MB
+              'write.metadata.puffin.enabled' = 'true',
+              'write.target-file-size-bytes' = '134217728'
            )
       """)
 
