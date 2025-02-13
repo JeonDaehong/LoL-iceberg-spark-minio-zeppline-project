@@ -11,3 +11,11 @@
 
 # 3. 아키텍처
 ![Image](https://github.com/user-attachments/assets/2a8bbe2d-8179-4385-8d49-83e11fff2644)
+
+<br><br><br>
+
+# 4. 버전
+
+<br><br><br>
+
+# 5. 스키마
