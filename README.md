@@ -6,6 +6,7 @@
 # 2. 프로젝트 목표
 
 * Apache Iceberg 이해와 활용
+* Spark Streaming 을 활용한 데이터 적재
 
 <br><br><br>
 
