@@ -122,6 +122,8 @@ SELECT (SELECT date_format(from_utc_timestamp(committed_at, 'Asia/Seoul'), 'yyyy
        (SELECT COUNT(*) FROM spark_catalog.lol_db.game_table FOR SYSTEM_VERSION AS OF 3530260578262733305)
 ORDER BY Time ASC;
 
+
+
 # 시간별로 데이터 수 쿼리
 
 SELECT DATE_FORMAT(from_utc_timestamp(current_timestamp() - INTERVAL 180 SECOND, 'Asia/Seoul'), 'yyyy-MM-dd HH:mm:ss') AS time_interval, COUNT(*) 
