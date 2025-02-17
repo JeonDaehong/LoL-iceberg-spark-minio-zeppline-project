@@ -6,7 +6,11 @@
 # 2. 프로젝트 목표
 
 * Apache Iceberg 이해와 활용
+* Apache Iceberg Time Travel 활용
+* Apache Iceberg Rollback 활용
+* Apache Iceberg Copy-on-Write 와 Merge-on-Read 비교
 * Spark Streaming 을 활용한 데이터 적재
+* Apache Kafka 를 통한 데이터 수집
 
 <br><br><br>
 
