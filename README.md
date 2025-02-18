@@ -5,13 +5,13 @@
 
 # 2. 프로젝트 목표
 
-◼️ Apache Iceberg 이해와 활용
-◼️ Apache Iceberg Time Travel 활용
-◼️ Apache Iceberg Rollback 활용
-◼️ Apache Iceberg Copy-on-Write 와 Merge-on-Read 비교
-◼️ Spark Streaming 을 활용한 데이터 적재
-◼️ Apache Kafka 를 통한 데이터 수집
-◼️ Apache Zeppelin 을 통한, 데이터 시각화
+◼️ Apache Iceberg 이해와 활용 <br>
+◼️ Apache Iceberg Time Travel 활용 <br>
+◼️ Apache Iceberg Rollback 활용 <br>
+◼️ Apache Iceberg Copy-on-Write 와 Merge-on-Read 비교 <br>
+◼️ Spark Streaming 을 활용한 데이터 적재 <br>
+◼️ Apache Kafka 를 통한 데이터 수집 <br>
+◼️ Apache Zeppelin 을 통한, 데이터 시각화 <br>
 
 <br><br><br>
 
@@ -22,9 +22,9 @@
 
 # 4. 버전
 
-◼️ Apache Iceberg 1.6.1
-◼️ Apache Spark 3.4.4
-◼️ Apache Zeppelin 0.11.2
+◼️ Apache Iceberg 1.6.1 <br>
+◼️ Apache Spark 3.4.4 <br>
+◼️ Apache Zeppelin 0.11.2 <br>
 ◼️ Apache Kafka 7.3.2
 
 
