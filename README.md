@@ -63,12 +63,14 @@ Iceberg의 Schema Evolution 및 Partition Evolution 기능을 적극 활용할 �
 # Docker Compose 실행
 docker-compose up -d
 ```
-<br>
+
+2️⃣ **데이터 적재 준비(Consume)**
 ```sh
 # Spark Streaming 실행
 sbt run
 ```
-<br>
+
+3️⃣ **데이터 생성 및 수집**
 ```sh
 # 데이터 생성 jar 실행
 ./lol-event-generator-startup.sh 5 30
