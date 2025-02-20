@@ -5,7 +5,7 @@
 Apache Iceberg를 중심으로 데이터 적재, 관리, 분석까지의 전 과정을 실습하는 프로젝트입니다. 
 본 프로젝트를 통해 Iceberg의 다양한 기능을 활용하고, Spark Streaming, Kafka, MinIO, Zeppelin 등의 기술과 통합하여 실무 수준의 데이터 아키텍처를 구현합니다.
 
----
+<br>
 
 ## 🎯 프로젝트 목표
 
@@ -24,7 +24,7 @@ Apache Iceberg를 중심으로 데이터 적재, 관리, 분석까지의 전 과
 ✅ **MinIO를 통한 Object Storage 관리**  
 ✅ **Docker Image를 활용한 프로젝트 환경 구성**  
 
----
+<br>
 
 ## 🏗️ 아키텍처
 
@@ -33,7 +33,7 @@ Apache Iceberg를 중심으로 데이터 적재, 관리, 분석까지의 전 과
 본 프로젝트는 **Apache Kafka → Spark Streaming → Apache Iceberg (MinIO) → Apache Zeppelin** 으로 이어지는 데이터 파이프라인을 구성합니다. 
 데이터의 수집, 적재, 관리, 분석까지의 전 과정을 하나의 아키텍처에서 실습할 수 있도록 설계되었습니다.
 
----
+<br>
 
 ## 🛠️ 사용 기술 및 버전
 
@@ -45,7 +45,7 @@ Apache Iceberg를 중심으로 데이터 적재, 관리, 분석까지의 전 과
 | **Apache Kafka** | 7.3.2 |
 | **Apache Zookeeper** | 7.3.2 |
 
----
+<br>
 
 ## 🗂️ 데이터 스키마
 
@@ -54,7 +54,7 @@ Apache Iceberg를 중심으로 데이터 적재, 관리, 분석까지의 전 과
 프로젝트에서 다룰 데이터는 Apache Iceberg 테이블에 적재되며, 스키마는 필요에 따라 변경 및 진화할 수 있습니다. 
 Iceberg의 Schema Evolution 및 Partition Evolution 기능을 적극 활용할 예정입니다.
 
----
+<br>
 
 ## 📌 실행 방법
 
