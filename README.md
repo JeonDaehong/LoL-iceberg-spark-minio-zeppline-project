@@ -1,6 +1,6 @@
 # 🚀 프로젝트 개요
 
-![프로젝트 개요](https://github.com/user-attachments/assets/ec8cbdf3-1abb-4da5-808e-1bdeefe976a6)
+<img src="https://github.com/user-attachments/assets/ec8cbdf3-1abb-4da5-808e-1bdeefe976a6" width="100%">
 
 Apache Iceberg를 중심으로 데이터 적재, 관리, 분석까지의 전 과정을 실습하는 프로젝트입니다. 
 본 프로젝트를 통해 Iceberg의 다양한 기능을 활용하고, Spark Streaming, Kafka, MinIO, Zeppelin 등의 기술과 통합하여 실무 수준의 데이터 아키텍처를 구현합니다.
